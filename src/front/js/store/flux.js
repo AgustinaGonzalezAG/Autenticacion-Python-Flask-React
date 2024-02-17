@@ -46,7 +46,78 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 				//reset the global store
 				setStore({ demo: demo });
-			}
+			},
+			registerUser: async (email, password) => {
+				try {
+                    const response = await fetch(`${process.env.BACKEND_URL}/signUp`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Error al registrar usuario");
+                    }
+					const data = await response.json();
+					return data
+				} catch{
+					console.error("Error al registrar usuario:", error);
+                    throw new error;
+				}
+
+			},
+			login: async (email, password) => {
+                try {
+                    const response = await fetch(`${process.env.BACKEND_URL}/login`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Error al iniciar sesión");
+                    }
+
+                    const data = await response.json();
+
+                    // Almacenar el token de acceso en sessionStorage
+                    sessionStorage.setItem("token", data.token);
+
+                    return data;
+                } catch (error) {
+                    console.error("Error al iniciar sesión:", error);
+                    throw error;
+                }
+            },
+			fetchProtectedData: async () => {
+				try {
+					const token = sessionStorage.getItem("token");
+					if (!token) {
+						throw new Error("No se encontró el token de acceso");
+					}
+		
+					const response = await fetch(`${process.env.BACKEND_URL}/protected`, {
+						method: "GET",
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					});
+		
+					if (!response.ok) {
+						throw new Error("Error al obtener datos protegidos");
+					}
+		
+					const data = await response.json();
+					return data;
+				} catch (error) {
+					console.error("Error al obtener datos protegidos:", error);
+					throw error;
+				}
+			},
 		}
 	};
 };
